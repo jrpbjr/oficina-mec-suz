@@ -1,0 +1,298 @@
+1. Estrutura das Entidades e Relacionamentos
+
+Cliente: Armazena informações do cliente que leva o veículo à oficina para o serviço.
+Veiculo: Armazena informações sobre os veículos. Cada veículo está relacionado a um cliente, estabelecendo uma relação de um-para-muitos entre Cliente e Veiculo.
+Equipe: Representa uma equipe de mecânicos.
+Mecanico: Armazena informações dos mecânicos. Cada mecânico pertence a uma equipe.
+OrdemServico: Representa uma ordem de serviço associada a um veículo e a uma equipe. Contém informações sobre o status, data de emissão e conclusão da OS.
+Servico: Contém dados sobre os serviços que podem ser realizados em uma OS, incluindo o valor da mão-de-obra.
+Peca: Contém dados sobre as peças disponíveis para utilização em uma OS, incluindo o valor de cada peça.
+
+2. Relacionamentos com Tabelas Associativas
+
+OrdemServico_Servico: Relaciona serviços específicos a uma OS. Contém a quantidade de vezes que um serviço é aplicado em uma OS e o valor total calculado para o serviço.
+OrdemServico_Peca: Relaciona peças específicas a uma OS. Contém a quantidade de peças usadas e o valor total calculado para essas peças.
+
+3. Script SQL Completo para a Criação das Tabelas
+
+-- Tabela Cliente
+CREATE TABLE Cliente (
+    idCliente INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Endereco VARCHAR(150),
+    Telefone VARCHAR(15)
+);
+
+-- Tabela Veiculo
+CREATE TABLE Veiculo (
+    idVeiculo INT PRIMARY KEY AUTO_INCREMENT,
+    Placa VARCHAR(10) UNIQUE NOT NULL,
+    Modelo VARCHAR(50),
+    Marca VARCHAR(50),
+    Ano INT,
+    idCliente INT,
+    FOREIGN KEY (idCliente) REFERENCES Cliente(idCliente)
+);
+
+-- Tabela Equipe
+CREATE TABLE Equipe (
+    idEquipe INT PRIMARY KEY AUTO_INCREMENT,
+    NomeEquipe VARCHAR(50)
+);
+
+-- Tabela Mecanico
+CREATE TABLE Mecanico (
+    idMecanico INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Endereco VARCHAR(150),
+    Especialidade VARCHAR(50),
+    idEquipe INT,
+    FOREIGN KEY (idEquipe) REFERENCES Equipe(idEquipe)
+);
+
+-- Tabela OrdemServico
+CREATE TABLE OrdemServico (
+    idOS INT PRIMARY KEY AUTO_INCREMENT,
+    DataEmissao DATE NOT NULL,
+    DataConclusao DATE,
+    Status VARCHAR(50),
+    ValorTotal DECIMAL(10, 2) DEFAULT 0,
+    idVeiculo INT,
+    idEquipe INT,
+    FOREIGN KEY (idVeiculo) REFERENCES Veiculo(idVeiculo),
+    FOREIGN KEY (idEquipe) REFERENCES Equipe(idEquipe)
+);
+
+-- Tabela Servico
+CREATE TABLE Servico (
+    idServico INT PRIMARY KEY AUTO_INCREMENT,
+    Descricao VARCHAR(100),
+    ValorMaoDeObra DECIMAL(10, 2)
+);
+
+-- Tabela Peca
+CREATE TABLE Peca (
+    idPeca INT PRIMARY KEY AUTO_INCREMENT,
+    Descricao VARCHAR(100),
+    Valor DECIMAL(10, 2)
+);
+
+-- Tabela OrdemServico_Servico (para associar serviços a uma OS)
+CREATE TABLE OrdemServico_Servico (
+    idOS INT,
+    idServico INT,
+    Quantidade INT,
+    ValorTotal DECIMAL(10, 2),
+    PRIMARY KEY (idOS, idServico),
+    FOREIGN KEY (idOS) REFERENCES OrdemServico(idOS),
+    FOREIGN KEY (idServico) REFERENCES Servico(idServico)
+);
+
+-- Tabela OrdemServico_Peca (para associar peças a uma OS)
+CREATE TABLE OrdemServico_Peca (
+    idOS INT,
+    idPeca INT,
+    Quantidade INT,
+    ValorTotal DECIMAL(10, 2),
+    PRIMARY KEY (idOS, idPeca),
+    FOREIGN KEY (idOS) REFERENCES OrdemServico(idOS),
+    FOREIGN KEY (idPeca) REFERENCES Peca(idPeca)
+);
+
+Explicação dos Relacionamentos e Atributos
+Relacionamento Cliente-Veículo: Um cliente pode ter vários veículos, mas cada veículo está associado a apenas um cliente, representado pela chave estrangeira idCliente na tabela Veiculo.
+
+Relacionamento Equipe-Mecânico: Cada mecânico pertence a uma equipe, mas uma equipe pode ter vários mecânicos. Esse relacionamento é representado pela chave estrangeira idEquipe na tabela Mecanico.
+
+Relacionamento Veículo-OrdemServico: Cada OS é associada a um único veículo, mas um veículo pode ter várias ordens de serviço ao longo do tempo. Esse relacionamento é representado pela chave estrangeira idVeiculo na tabela OrdemServico.
+
+Relacionamento Equipe-OrdemServico: Cada OS é designada a uma única equipe, e uma equipe pode ser responsável por várias ordens de serviço. Esse relacionamento é representado pela chave estrangeira idEquipe na tabela OrdemServico.
+
+Relacionamentos de Serviços e Peças na OS: As tabelas associativas OrdemServico_Servico e OrdemServico_Peca representam os relacionamentos muitos-para-muitos entre ordens de serviço e serviços, bem como entre ordens de serviço e peças. Essas tabelas armazenam as chaves estrangeiras para as entidades relacionadas e valores adicionais, como Quantidade e ValorTotal.
+
+Esse esquema ER para o modelo relacional é completo e pronto para atender às operações de uma oficina, com suporte para clientes, veículos, equipes, mecânicos, ordens de serviço, serviços e peças.
+
+um script SQL com exemplos de inserção de dados (INSERT) para popular as tabelas do sistema 
+
+-- Inserindo dados na tabela Cliente
+INSERT INTO Cliente (Nome, Endereco, Telefone) VALUES 
+('João Silva', 'Rua das Flores, 123', '11999990001'),
+('Maria Oliveira', 'Avenida Paulista, 1000', '11988880002'),
+('Carlos Santos', 'Rua das Laranjeiras, 45', '11977770003'),
+('Ana Costa', 'Avenida Brasil, 200', '11966660004'),
+('Paulo Almeida', 'Rua do Sol, 12', '11955550005');
+
+-- Inserindo dados na tabela Veiculo
+INSERT INTO Veiculo (Placa, Modelo, Marca, Ano, idCliente) VALUES 
+('ABC1234', 'Civic', 'Honda', 2015, 1),
+('DEF5678', 'Corolla', 'Toyota', 2018, 2),
+('GHI9101', 'Onix', 'Chevrolet', 2020, 3),
+('JKL1213', 'Golf', 'Volkswagen', 2017, 4),
+('MNO1415', 'Fiesta', 'Ford', 2016, 5);
+
+-- Inserindo dados na tabela Equipe
+INSERT INTO Equipe (NomeEquipe) VALUES 
+('Equipe Alfa'), 
+('Equipe Beta'),
+('Equipe Gama');
+
+-- Inserindo dados na tabela Mecanico
+INSERT INTO Mecanico (Nome, Endereco, Especialidade, idEquipe) VALUES 
+('Ricardo Melo', 'Rua A, 123', 'Motor', 1),
+('Felipe Braga', 'Rua B, 456', 'Suspensão', 1),
+('Lucas Souza', 'Rua C, 789', 'Freios', 2),
+('Fernando Lima', 'Rua D, 101', 'Elétrica', 2),
+('Bruno Silva', 'Rua E, 202', 'Pneus', 3);
+
+-- Inserindo dados na tabela OrdemServico
+INSERT INTO OrdemServico (DataEmissao, DataConclusao, Status, ValorTotal, idVeiculo, idEquipe) VALUES 
+('2023-01-10', '2023-01-15', 'Concluída', 1500.00, 1, 1),
+('2023-02-05', '2023-02-10', 'Concluída', 1200.00, 2, 1),
+('2023-03-01', '2023-03-05', 'Em Andamento', 500.00, 3, 2),
+('2023-04-07', '2023-04-12', 'Concluída', 800.00, 4, 2),
+('2023-05-03', NULL, 'Em Andamento', 300.00, 5, 3);
+
+-- Inserindo dados na tabela Servico
+INSERT INTO Servico (Descricao, ValorMaoDeObra) VALUES 
+('Troca de óleo', 100.00),
+('Revisão de freios', 200.00),
+('Alinhamento e balanceamento', 150.00),
+('Troca de filtro de ar', 50.00),
+('Troca de velas', 80.00);
+
+-- Inserindo dados na tabela Peca
+INSERT INTO Peca (Descricao, Valor) VALUES 
+('Filtro de óleo', 30.00),
+('Filtro de ar', 20.00),
+('Velas de ignição', 40.00),
+('Pastilhas de freio', 120.00),
+('Pneus', 300.00);
+
+-- Inserindo dados na tabela OrdemServico_Servico
+INSERT INTO OrdemServico_Servico (idOS, idServico, Quantidade, ValorTotal) VALUES 
+(1, 1, 1, 100.00),
+(1, 2, 1, 200.00),
+(2, 3, 1, 150.00),
+(2, 4, 1, 50.00),
+(3, 5, 1, 80.00);
+
+-- Inserindo dados na tabela OrdemServico_Peca
+INSERT INTO OrdemServico_Peca (idOS, idPeca, Quantidade, ValorTotal) VALUES 
+(1, 1, 1, 30.00),
+(1, 2, 1, 20.00),
+(2, 3, 1, 40.00),
+(3, 4, 1, 120.00),
+(4, 5, 1, 300.00);
+
+Script de Inserção
+Cliente: Dados fictícios de clientes com nome, endereço e telefone.
+Veiculo: Cada veículo é associado a um cliente específico (idCliente).
+Equipe: Cada equipe de mecânicos tem um nome.
+Mecanico: Dados fictícios de mecânicos, incluindo especialidade e a equipe a que pertencem (idEquipe).
+OrdemServico: Ordens de serviço com data de emissão, data de conclusão, status, valor total, veículo associado (idVeiculo) e equipe responsável (idEquipe).
+Servico: Lista de serviços possíveis, com uma descrição e valor de mão-de-obra.
+Peca: Lista de peças, com uma descrição e valor unitário.
+OrdemServico_Servico: Associa serviços a uma ordem de serviço específica, com a quantidade e o valor total por serviço.
+OrdemServico_Peca: Associa peças a uma ordem de serviço específica, com a quantidade e o valor total por peça.
+
+Um conjunto de queries SQL para as operações
+
+1. Recuperações Simples com SELECT
+Recuperar todos os clientes com suas informações básicas:
+
+
+SELECT idCliente, Nome, Endereco, Telefone
+FROM Cliente;
+Listar todos os veículos com seus modelos, marcas e ano:
+
+
+SELECT idVeiculo, Placa, Modelo, Marca, Ano
+FROM Veiculo;
+2. Filtros com WHERE
+Selecionar todos os clientes com telefone começando com '119':
+
+
+SELECT idCliente, Nome, Endereco, Telefone
+FROM Cliente
+WHERE Telefone LIKE '119%';
+Selecionar todas as ordens de serviço em andamento:
+
+
+SELECT idOS, DataEmissao, DataConclusao, Status, ValorTotal
+FROM OrdemServico
+WHERE Status = 'Em Andamento';
+3. Expressões para Gerar Atributos Derivados
+Calcular o custo total por ordem de serviço, considerando o valor total de serviços e peças:
+
+
+SELECT OS.idOS, 
+       SUM(OSP.ValorTotal + OSS.ValorTotal) AS CustoTotal
+FROM OrdemServico AS OS
+LEFT JOIN OrdemServico_Peca AS OSP ON OS.idOS = OSP.idOS
+LEFT JOIN OrdemServico_Servico AS OSS ON OS.idOS = OSS.idOS
+GROUP BY OS.idOS;
+Calcular o custo médio das peças usadas em cada ordem de serviço:
+
+
+SELECT idOS, AVG(ValorTotal) AS CustoMedioPeca
+FROM OrdemServico_Peca
+GROUP BY idOS;
+4. Ordenações dos Dados com ORDER BY
+Listar todos os mecânicos em ordem alfabética:
+
+
+SELECT idMecanico, Nome, Endereco, Especialidade
+FROM Mecanico
+ORDER BY Nome ASC;
+Listar todas as ordens de serviço pela data de emissão, mais recentes primeiro:
+
+
+SELECT idOS, DataEmissao, Status, ValorTotal
+FROM OrdemServico
+ORDER BY DataEmissao DESC;
+5. Condições de Filtros aos Grupos com HAVING
+Listar ordens de serviço com custo total acima de R$ 500,00:
+
+
+SELECT OS.idOS, SUM(OSS.ValorTotal + OSP.ValorTotal) AS CustoTotal
+FROM OrdemServico AS OS
+LEFT JOIN OrdemServico_Servico AS OSS ON OS.idOS = OSS.idOS
+LEFT JOIN OrdemServico_Peca AS OSP ON OS.idOS = OSP.idOS
+GROUP BY OS.idOS
+HAVING CustoTotal > 500.00;
+Listar os serviços realizados com mais de 2 quantidades em qualquer ordem de serviço:
+
+
+SELECT idServico, SUM(Quantidade) AS TotalQuantidade
+FROM OrdemServico_Servico
+GROUP BY idServico
+HAVING TotalQuantidade > 2;
+6. Junções entre Tabelas para Perspectiva Mais Complexa com GROUP BY
+Listar cada ordem de serviço com o cliente, veículo e equipe responsáveis:
+
+
+SELECT OS.idOS, Pessoa.Nome AS Cliente, Veiculo.Placa, Equipe.NomeEquipe, OS.Status, OS.ValorTotal
+FROM OrdemServico AS OS
+JOIN Veiculo ON OS.idVeiculo = Veiculo.idVeiculo
+JOIN Cliente ON Veiculo.idCliente = Cliente.idCliente
+JOIN Pessoa ON Cliente.idPessoa = Pessoa.idPessoa
+JOIN Equipe ON OS.idEquipe = Equipe.idEquipe
+ORDER BY OS.idOS;
+Listar cada cliente com a quantidade total de veículos que possui na oficina:
+
+
+SELECT Cliente.idCliente, Pessoa.Nome AS Cliente, COUNT(Veiculo.idVeiculo) AS TotalVeiculos
+FROM Cliente
+JOIN Veiculo ON Cliente.idCliente = Veiculo.idCliente
+JOIN Pessoa ON Cliente.idPessoa = Pessoa.idPessoa
+GROUP BY Cliente.idCliente;
+Listar o total gasto em serviços por cada cliente:
+
+
+SELECT Cliente.idCliente, Pessoa.Nome AS Cliente, SUM(OSS.ValorTotal) AS TotalGastoServicos
+FROM Cliente
+JOIN Veiculo ON Cliente.idCliente = Veiculo.idCliente
+JOIN OrdemServico AS OS ON Veiculo.idVeiculo = OS.idVeiculo
+JOIN OrdemServico_Servico AS OSS ON OS.idOS = OSS.idOS
+JOIN Pessoa ON Cliente.idPessoa = Pessoa.idPessoa
+GROUP BY Cliente.idCliente;
